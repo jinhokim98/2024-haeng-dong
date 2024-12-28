@@ -38,7 +38,7 @@ const WithdrawPage = lazy(() => import('@pages/mypage/withdraw/WithdrawPage'));
 const EditEventName = lazy(() => import('@pages/event/[eventId]/admin/edit-event-name/EditEventNamePage'));
 
 const envValue = process.env.BRANCH_NAME;
-const basename = typeof envValue !== 'undefined' ? '/' + envValue : '/';
+const basename = typeof envValue !== 'undefined' ? `/${envValue}` : '/';
 
 const router = createBrowserRouter(
   [
