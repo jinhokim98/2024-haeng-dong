@@ -89,7 +89,7 @@ jobs:
 
       # 6. Dev 환경으로 빌드
       - name: Build dev environment
-        run: npm run build-dev
+        run: npm run build-dev-feature
         env:
           API_BASE_URL: ${{ secrets.API_BASE_URL }}
           AMPLITUDE_KEY: ${{ secrets.AMPLITUDE_KEY }}
