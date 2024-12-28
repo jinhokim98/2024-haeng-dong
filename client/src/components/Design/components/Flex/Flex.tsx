@@ -2,8 +2,7 @@
 import {forwardRef} from 'react';
 
 import {StrictPropsWithChildren} from '@type/strictPropsWithChildren';
-
-import {useTheme} from '../../index';
+import {useTheme} from '@components/Design/theme/HDesignProvider';
 
 import {FlexProps} from './Flex.type';
 import {flexStyle} from './Flex.style';
