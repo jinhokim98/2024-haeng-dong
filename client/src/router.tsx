@@ -34,120 +34,126 @@ const CreatedEventsPage = lazy(() => import('@pages/mypage/events/CreatedEventsP
 const EventPageLoading = lazy(() => import('@pages/fallback/EventPageLoading'));
 const WithdrawPage = lazy(() => import('@pages/mypage/withdraw/WithdrawPage'));
 
-const router = createBrowserRouter([
-  {
-    path: '',
-    element: (
-      <Suspense>
-        <App />
-      </Suspense>
-    ),
-    children: [
-      {
-        index: true,
-        path: ROUTER_URLS.main,
-        element: <MainPage />,
-      },
-      {
-        path: ROUTER_URLS.createGuestEvent,
-        element: <CreateGuestEventFunnel />,
-      },
-      {
-        path: ROUTER_URLS.createUserEvent,
-        element: <CreateUserEventFunnel />,
-      },
-      {
-        path: ROUTER_URLS.login,
-        element: <LoginPage />,
-      },
-      {
-        path: ROUTER_URLS.myPage,
-        element: <MyPage />,
-      },
-      {
-        path: ROUTER_URLS.withdraw,
-        element: <WithdrawPage />,
-      },
-      {
-        path: ROUTER_URLS.createdEvents,
-        element: <CreatedEventsPage />,
-      },
-      {
-        path: ROUTER_URLS.kakaoLoginRedirectUri,
-        element: <LoginRedirectPage />,
-        errorElement: <LoginFailFallback />,
-      },
-      {
-        path: ROUTER_URLS.event,
-        element: (
-          <Suspense fallback={<EventPageLoading />}>
-            <EventLoader>
-              <EventPage />
-            </EventLoader>
-          </Suspense>
-        ),
-        children: [
-          {
-            path: ROUTER_URLS.eventManage,
-            element: (
-              <AuthGate>
-                <AdminPage />
-              </AuthGate>
-            ),
-          },
-          {
-            path: ROUTER_URLS.home,
-            element: <HomePage />,
-          },
-          {
-            path: ROUTER_URLS.guestEventLogin,
-            element: <GuestEventLogin />,
-          },
-          {
-            path: ROUTER_URLS.userEventLogin,
-            element: <UserEventLogin />,
-          },
-        ],
-      },
-      {
-        path: ROUTER_URLS.addBill,
-        element: <AddBillFunnel />,
-      },
-      {
-        path: ROUTER_URLS.members,
-        element: <MembersPage />,
-      },
-      {
-        path: ROUTER_URLS.editBill,
-        element: <EditBillPage />,
-      },
-      {
-        path: ROUTER_URLS.editAccount,
-        element: <EditAccountPage />,
-      },
-      {
-        path: ROUTER_URLS.images,
-        element: <ImagesPage />,
-      },
-      {
-        path: ROUTER_URLS.addImages,
-        element: <AddImagesPage />,
-      },
-      {
-        path: ROUTER_URLS.send,
-        element: <SendPage />,
-        errorElement: <SendErrorPage />,
-      },
-      {
-        path: ROUTER_URLS.qrCode,
-        element: <QRCodePage />,
-      },
-    ],
-  },
-  {
-    path: '*',
-    element: <ErrorPage />,
-  },
-]);
+const envValue = process.env.BRANCH_NAME;
+const basename = typeof envValue !== 'undefined' ? `/${envValue}` : '/';
+
+const router = createBrowserRouter(
+  [
+    {
+      path: '',
+      element: (
+        <Suspense>
+          <App />
+        </Suspense>
+      ),
+      children: [
+        {
+          index: true,
+          path: ROUTER_URLS.main,
+          element: <MainPage />,
+        },
+        {
+          path: ROUTER_URLS.createGuestEvent,
+          element: <CreateGuestEventFunnel />,
+        },
+        {
+          path: ROUTER_URLS.createUserEvent,
+          element: <CreateUserEventFunnel />,
+        },
+        {
+          path: ROUTER_URLS.login,
+          element: <LoginPage />,
+        },
+        {
+          path: ROUTER_URLS.myPage,
+          element: <MyPage />,
+        },
+        {
+          path: ROUTER_URLS.withdraw,
+          element: <WithdrawPage />,
+        },
+        {
+          path: ROUTER_URLS.createdEvents,
+          element: <CreatedEventsPage />,
+        },
+        {
+          path: ROUTER_URLS.kakaoLoginRedirectUri,
+          element: <LoginRedirectPage />,
+          errorElement: <LoginFailFallback />,
+        },
+        {
+          path: ROUTER_URLS.event,
+          element: (
+            <Suspense fallback={<EventPageLoading />}>
+              <EventLoader>
+                <EventPage />
+              </EventLoader>
+            </Suspense>
+          ),
+          children: [
+            {
+              path: ROUTER_URLS.eventManage,
+              element: (
+                <AuthGate>
+                  <AdminPage />
+                </AuthGate>
+              ),
+            },
+            {
+              path: ROUTER_URLS.home,
+              element: <HomePage />,
+            },
+            {
+              path: ROUTER_URLS.guestEventLogin,
+              element: <GuestEventLogin />,
+            },
+            {
+              path: ROUTER_URLS.userEventLogin,
+              element: <UserEventLogin />,
+            },
+          ],
+        },
+        {
+          path: ROUTER_URLS.addBill,
+          element: <AddBillFunnel />,
+        },
+        {
+          path: ROUTER_URLS.members,
+          element: <MembersPage />,
+        },
+        {
+          path: ROUTER_URLS.editBill,
+          element: <EditBillPage />,
+        },
+        {
+          path: ROUTER_URLS.editAccount,
+          element: <EditAccountPage />,
+        },
+        {
+          path: ROUTER_URLS.images,
+          element: <ImagesPage />,
+        },
+        {
+          path: ROUTER_URLS.addImages,
+          element: <AddImagesPage />,
+        },
+        {
+          path: ROUTER_URLS.send,
+          element: <SendPage />,
+          errorElement: <SendErrorPage />,
+        },
+        {
+          path: ROUTER_URLS.qrCode,
+          element: <QRCodePage />,
+        },
+      ],
+    },
+    {
+      path: '*',
+      element: <ErrorPage />,
+    },
+  ],
+  {basename},
+);
 
 export default router;
