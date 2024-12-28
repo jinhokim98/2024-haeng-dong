@@ -13,6 +13,7 @@
   "scripts": {
     "prod": "NODE_ENV=production webpack server --open --config webpack.prod.mjs",
     "dev": "NODE_ENV=development webpack server --open --config webpack.dev.mjs",
+    "dev-feature": "NODE_ENV=development BRANCH_NAME=$BRANCH_NAME webpack server --open --config webpack.dev.mjs",
     "build": "NODE_ENV=production webpack --config webpack.prod.mjs",
     "build-dev": "NODE_ENV=development webpack --config webpack.dev.mjs",
     "build-dev-feature": "NODE_ENV=development BRANCH_NAME=$BRANCH_NAME webpack --config webpack.dev.mjs",
