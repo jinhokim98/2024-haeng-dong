@@ -4,6 +4,7 @@ import Dotenv from 'dotenv-webpack';
 import common from './webpack.common.mjs';
 import {fileURLToPath} from 'url';
 import TerserPlugin from 'terser-webpack-plugin';
+import {WebpackManifestPlugin} from 'webpack-manifest-plugin';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,6 +37,10 @@ export default merge(common, {
   plugins: [
     new Dotenv({
       path: '.env.dev',
+    }),
+    new WebpackManifestPlugin({
+      fileName: 'manifest.json',
+      basePath: './dist/',
     }),
   ],
   optimization: {
