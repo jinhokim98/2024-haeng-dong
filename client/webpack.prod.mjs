@@ -4,6 +4,7 @@ import Dotenv from 'dotenv-webpack';
 import common from './webpack.common.mjs';
 import {fileURLToPath} from 'url';
 import {sentryWebpackPlugin} from '@sentry/webpack-plugin';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +22,11 @@ export default merge(common, {
   plugins: [
     new Dotenv({
       path: '.env.prod',
+    }),
+    new HtmlWebpackPlugin({
+      template: './index.html',
+      hash: true,
+      favicon: path.resolve(__dirname, 'public/favicon.ico'),
     }),
     sentryWebpackPlugin({
       authToken: process.env.SENTRY_AUTH_TOKEN,

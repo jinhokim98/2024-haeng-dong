@@ -1,5 +1,4 @@
 import path from 'path';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import {ModifySourcePlugin, ConcatOperation} from 'modify-source-webpack-plugin';
 import {fileURLToPath} from 'url';
@@ -53,11 +52,6 @@ export default {
     ],
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      template: './index.html',
-      hash: true,
-      favicon: path.resolve(__dirname, 'public/favicon.ico'),
-    }),
     new ForkTsCheckerWebpackPlugin(),
     new ModifySourcePlugin({
       rules: [
