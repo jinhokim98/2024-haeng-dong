@@ -32,7 +32,7 @@ export const HDesignProvider: React.FC<{children: ReactNode}> = ({children}) => 
 export const useTheme = (): ThemeContextProps => {
   const context = useContext(ThemeContext);
   if (!context) {
-    // throw new Error('useTheme must be used within a HDesignProvider');
+    throw new Error('useTheme must be used within a HDesignProvider');
   }
   return context as ThemeContextProps;
 };
