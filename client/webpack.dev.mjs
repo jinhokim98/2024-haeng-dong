@@ -5,7 +5,6 @@ import common from './webpack.common.mjs';
 import {fileURLToPath} from 'url';
 import TerserPlugin from 'terser-webpack-plugin';
 import {WebpackManifestPlugin} from 'webpack-manifest-plugin';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +24,7 @@ export default merge(common, {
   devServer: {
     port: 3000,
     hot: true,
+    publicPath,
     client: {
       overlay: false,
     },
@@ -38,12 +38,6 @@ export default merge(common, {
   plugins: [
     new Dotenv({
       path: '.env.dev',
-    }),
-    new HtmlWebpackPlugin({
-      template: './index.html',
-      publicPath,
-      hash: true,
-      favicon: path.resolve(__dirname, 'public/favicon.ico'),
     }),
     new WebpackManifestPlugin({
       fileName: 'manifest.json',

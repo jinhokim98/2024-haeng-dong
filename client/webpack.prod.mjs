@@ -23,11 +23,6 @@ export default merge(common, {
     new Dotenv({
       path: '.env.prod',
     }),
-    new HtmlWebpackPlugin({
-      template: './index.html',
-      hash: true,
-      favicon: path.resolve(__dirname, 'public/favicon.ico'),
-    }),
     sentryWebpackPlugin({
       authToken: process.env.SENTRY_AUTH_TOKEN,
       org: 'wtc-o6',
