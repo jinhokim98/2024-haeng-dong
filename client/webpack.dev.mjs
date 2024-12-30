@@ -4,9 +4,12 @@ import Dotenv from 'dotenv-webpack';
 import common from './webpack.common.mjs';
 import {fileURLToPath} from 'url';
 import TerserPlugin from 'terser-webpack-plugin';
+import {WebpackManifestPlugin} from 'webpack-manifest-plugin';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const publicPath = process.env.BRANCH_NAME ? `/${process.env.BRANCH_NAME}/` : '/';
 
 export default merge(common, {
   mode: 'development',
@@ -15,20 +18,31 @@ export default merge(common, {
     chunkFilename: '[id].chunk.js',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
-    publicPath: '/',
+    publicPath,
+    asyncChunks: true,
   },
   devtool: 'eval-source-map',
   devServer: {
     port: 3000,
-    historyApiFallback: true,
     hot: true,
+    publicPath,
     client: {
       overlay: false,
+    },
+    historyApiFallback: {
+      rewrites: [{from: /./, to: '/index.html'}],
+    },
+    static: {
+      directory: path.resolve(__dirname, 'dist'),
     },
   },
   plugins: [
     new Dotenv({
       path: '.env.dev',
+    }),
+    new WebpackManifestPlugin({
+      fileName: 'manifest.json',
+      basePath: './dist/',
     }),
   ],
   optimization: {

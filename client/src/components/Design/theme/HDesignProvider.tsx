@@ -34,5 +34,5 @@ export const useTheme = (): ThemeContextProps => {
   if (!context) {
     throw new Error('useTheme must be used within a HDesignProvider');
   }
-  return context;
+  return context as ThemeContextProps;
 };
