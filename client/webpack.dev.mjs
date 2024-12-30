@@ -19,6 +19,7 @@ export default merge(common, {
     path: path.resolve(__dirname, 'dist'),
     clean: true,
     publicPath,
+    asyncChunks: true,
   },
   devtool: 'eval-source-map',
   devServer: {
