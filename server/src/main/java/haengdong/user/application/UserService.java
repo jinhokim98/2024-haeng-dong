@@ -5,19 +5,21 @@ import haengdong.common.exception.HaengdongErrorCode;
 import haengdong.common.exception.HaengdongException;
 import haengdong.event.application.response.UserAppResponse;
 import haengdong.user.application.request.UserGuestSaveAppRequest;
+import haengdong.user.application.request.UserJoinAppRequest;
 import haengdong.user.application.request.UserUpdateAppRequest;
 import haengdong.user.domain.User;
 import haengdong.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
 public class UserService {
-    private final UserRepository userRepository;
 
-    private final KakaoClient kakaoClient;
+    private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Long joinGuest(UserGuestSaveAppRequest request) {
@@ -28,9 +30,9 @@ public class UserService {
     }
 
     @Transactional
-    public Long join(String memberNumber, String nickname) {
-        User user = userRepository.findByMemberNumber(memberNumber)
-                .orElseGet(() -> userRepository.save(User.createMember(nickname, memberNumber)));
+    public Long join(UserJoinAppRequest request) {
+        User user = userRepository.findByMemberNumber(request.memberNumber())
+                .orElseGet(() -> userRepository.save(request.toUser()));
 
         return user.getId();
     }
@@ -56,21 +58,22 @@ public class UserService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public String findNicknameById(Long id) {
-        User user = getUser(id);
-        return user.getNickname();
-    }
-
     @Transactional
     public void withdraw(Long id) {
         userRepository.deleteById(id);
+        eventPublisher.publishEvent(new UserDeleteEvent(id));
     }
 
+    @Transactional(readOnly = true)
     public UserAppResponse findById(Long id) {
         User user = getUser(id);
 
         return UserAppResponse.of(user);
+    }
+
+    @Transactional(readOnly = true)
+    public String findMemberNumberById(Long id) {
+        return getUser(id).getMemberNumber();
     }
 
     private User getUser(Long id) {

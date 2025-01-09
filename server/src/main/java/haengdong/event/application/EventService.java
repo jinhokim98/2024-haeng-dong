@@ -4,6 +4,7 @@ import haengdong.common.exception.AuthenticationException;
 import haengdong.common.exception.HaengdongErrorCode;
 import haengdong.common.exception.HaengdongException;
 import haengdong.event.application.request.EventAppRequest;
+import haengdong.event.application.request.EventDeleteAppRequest;
 import haengdong.event.application.request.EventGuestAppRequest;
 import haengdong.event.application.request.EventLoginAppRequest;
 import haengdong.event.application.request.EventMineAppResponse;
@@ -24,16 +25,20 @@ import haengdong.event.domain.event.image.EventImage;
 import haengdong.event.domain.event.image.EventImageRepository;
 import haengdong.event.domain.event.member.EventMember;
 import haengdong.event.domain.event.member.EventMemberRepository;
+import haengdong.user.application.UserDeleteEvent;
 import haengdong.user.application.UserService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map.Entry;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 @Service
 public class EventService {
 
@@ -50,25 +55,26 @@ public class EventService {
     public EventAppResponse saveEventGuest(EventGuestAppRequest request) {
         Long userId = userService.joinGuest(request.toUserRequest());
         String token = randomValueProvider.createRandomValue();
-        Event event = new Event(request.eventName(), userId, token);
+        Event event = Event.createByGuest(request.eventName(), token, userId);
         eventRepository.save(event);
 
-        eventMemberRepository.save(new EventMember(event, request.nickname()));
+        eventMemberRepository.save(EventMember.createHost(event, request.getNickname()));
         return EventAppResponse.of(event);
     }
 
     @Transactional
     public EventAppResponse saveEvent(EventAppRequest request) {
-        String token = randomValueProvider.createRandomValue();
-        Event event = new Event(request.name(), request.userId(), token);
-        eventRepository.save(event);
+        UserAppResponse user = userService.findById(request.userId());
 
-        String nickname = userService.findNicknameById(request.userId());
-        eventMemberRepository.save(new EventMember(event, nickname));
+        String token = randomValueProvider.createRandomValue();
+        Event event = Event.createWithAccount(request.name(), token, request.userId(), user.bankName(), user.accountNumber());
+        eventRepository.save(event);
+        eventMemberRepository.save(EventMember.createHost(event, user.nickname()));
 
         return EventAppResponse.of(event);
     }
 
+    @Transactional(readOnly = true)
     public EventDetailAppResponse findEvent(String token) {
         Event event = getEvent(token);
         Long userId = event.getUserId();
@@ -77,12 +83,14 @@ public class EventService {
         return EventDetailAppResponse.of(event, user);
     }
 
+    @Transactional(readOnly = true)
     public EventAppResponse findByGuestPassword(EventLoginAppRequest request) {
         Event event = getEvent(request.token());
         userService.validateUser(event.getUserId(), request.password());
         return EventAppResponse.of(event);
     }
 
+    @Transactional(readOnly = true)
     public List<MemberBillReportAppResponse> getMemberBillReports(String token) {
         Event event = getEvent(token);
         List<EventMember> eventMembers = eventMemberRepository.findAllByEvent(event);
@@ -108,9 +116,14 @@ public class EventService {
     }
 
     @Transactional
-    public void updateEventName(String token, EventUpdateAppRequest request) {
+    public void updateEvent(String token, EventUpdateAppRequest request) {
         Event event = getEvent(token);
-        event.rename(request.eventName());
+        if (request.isEventNameExist()) {
+            event.rename(request.eventName());
+        }
+        if (request.isAccountExist()) {
+            event.changeAccount(request.bankName(), request.accountNumber());
+        }
     }
 
     @Transactional
@@ -138,6 +151,7 @@ public class EventService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<EventImageAppResponse> findImages(String token) {
         Event event = getEvent(token);
 
@@ -169,12 +183,14 @@ public class EventService {
         imageIds.forEach(imageId -> deleteImage(token, imageId));
     }
 
+    @Transactional(readOnly = true)
     public List<EventImageSaveAppResponse> findImagesDateBefore(Instant date) {
         return eventImageRepository.findByCreatedAtAfter(date).stream()
                 .map(EventImageSaveAppResponse::of)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public boolean existsByTokenAndUserId(String eventToken, Long userId) {
         return eventRepository.existsByTokenAndUserId(eventToken, userId);
     }
@@ -189,10 +205,36 @@ public class EventService {
                 .orElseThrow(() -> new HaengdongException(HaengdongErrorCode.IMAGE_NOT_FOUND));
     }
 
+    @Transactional(readOnly = true)
     public List<EventMineAppResponse> findByUserId(Long userId) {
         return eventRepository.findByUserId(userId).stream()
                 .map(event -> EventMineAppResponse.of(
                         event, !eventMemberRepository.existsByEventAndIsDeposited(event, false)))
                 .toList();
+    }
+
+    @Transactional
+    public void deleteEvents(EventDeleteAppRequest request) {
+        request.eventIds()
+                .forEach(token -> deleteEvent(token, request.token()));
+    }
+
+    private void deleteEvent(String token, Long userId) {
+        Event event = eventRepository.findByToken(token)
+                .orElseThrow(() -> new HaengdongException(HaengdongErrorCode.EVENT_NOT_FOUND));
+
+        if (event.isNotHost(userId)) {
+            throw new AuthenticationException(HaengdongErrorCode.FORBIDDEN);
+        }
+
+        eventRepository.delete(event);
+    }
+
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleUserDelete(UserDeleteEvent userDeleteEvent) {
+        Long userId = userDeleteEvent.id();
+        eventRepository.deleteByUserId(userId);
     }
 }

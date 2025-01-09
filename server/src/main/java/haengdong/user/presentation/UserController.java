@@ -1,5 +1,7 @@
 package haengdong.user.presentation;
 
+import haengdong.event.application.response.UserAppResponse;
+import haengdong.user.presentation.response.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +58,7 @@ public class UserController {
     ) {
         log.info("Kakao login code, redirectUri: {}, {}", code, redirectUri);
         Long userId = kakaoUserService.joinByKakao(code, redirectUri);
-        String jwtToken = authService.createGuestToken(userId);
+        String jwtToken = authService.createMemberToken(userId);
 
         ResponseCookie responseCookie = createResponseCookie(jwtToken);
         return ResponseEntity.ok()
@@ -64,10 +66,31 @@ public class UserController {
                 .build();
     }
 
+    @GetMapping("/api/users/mine")
+    public ResponseEntity<UserResponse> findUser(@Login Long userId) {
+        UserAppResponse response = userService.findById(userId);
+        return ResponseEntity.ok(UserResponse.of(response));
+    }
+
     @DeleteMapping("/api/users")
     public ResponseEntity<Void> deleteUser(@Login Long userId) {
-        userService.withdraw(userId);
-        return ResponseEntity.ok().build();
+        kakaoUserService.withdraw(userId);
+
+        ResponseCookie responseCookie = expireCookie();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .build();
+    }
+
+    private ResponseCookie expireCookie() {
+        return ResponseCookie.from(authService.getTokenName(), null)
+                .httpOnly(cookieProperties.httpOnly())
+                .secure(cookieProperties.secure())
+                .domain(cookieProperties.domain())
+                .path(cookieProperties.path())
+                .sameSite(cookieProperties.sameSite())
+                .maxAge(0L)
+                .build();
     }
 
     private ResponseCookie createResponseCookie(String token) {
