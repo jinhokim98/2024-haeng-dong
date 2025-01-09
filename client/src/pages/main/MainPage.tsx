@@ -19,6 +19,7 @@ const MainPage = () => {
 
   return (
     <div css={mainContainer}>
+      <p>테스트</p>
       <Nav isGuest={isGuest} />
       <MainSection isGuest={isGuest} />
       <DescriptionSection />
